@@ -1,0 +1,11 @@
+# PsiCore: A Minimal Formal Substrate for Autonomous AI
+
+PsiCore is a formal “System 2” substrate for autonomous AI, using Symbol and Lambda primitives in a probabilistic hypergraph with paraconsistent logic and a self‑modification loop guided by a consistency‑based utility.
+
+## Contents
+- PsiCore.tex – LaTeX source of the paper.
+- PsiCore.pdf – Compiled paper (if included).
+- (Optional) src/ – Prototype interpreters or experiments.
+
+## License
+This work is dedicated to the public domain under the CC0 1.0 Universal license. You may copy, modify, and distribute it, with or without attribution, for any purpose.
