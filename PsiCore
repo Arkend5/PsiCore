@@ -1,0 +1,369 @@
+\documentclass[12pt]{article}
+\usepackage{amsmath, amssymb, amsthm, geometry, graphicx, hyperref, microtype}
+\usepackage[font=small,labelfont=bf]{caption}
+\usepackage[parfill]{parskip}
+\geometry{margin=1in}
+
+% Theorem environments
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}[section]
+\newtheorem{axiom}{Axiom}[section]
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{corollary}{Corollary}[theorem]
+\newtheorem{lemma}[theorem]{Lemma}
+
+\title{\textbf{PsiCore: A Minimal Formal Substrate for Autonomous Artificial Intelligence}}
+\author{Independent Research Collective}
+\date{December 2025}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+\noindent
+This paper introduces \textbf{PsiCore}, a self-referential formal architecture intended as a computational substrate for autonomous artificial intelligence. PsiCore is designed explicitly for artificial, rather than human-like, cognition. The architecture is built around a dual-primitive calculus (\textsc{Symbol} and \textsc{Lambda}) embedded in a self-modifying hypergraph, with inference governed by paraconsistent relevance logic. System evolution is driven by a recursive optimization loop that proposes, verifies, and selectively adopts graph transformations while isolating contradictions in local contexts. 
+
+\noindent
+\textbf{Contributions.} 
+\emph{(1)} We define \emph{Psi-Calculus}, a minimal formal system based on \textsc{Symbol} and \textsc{Lambda} primitives and a probabilistic hypergraph state. 
+\emph{(2)} We specify a paraconsistent, self-modifying architecture that supports local inconsistency without global collapse, via relevance-style entailment and contradiction isolation. 
+\emph{(3)} We prove that Psi-Calculus is Turing-complete in consistent subspaces, sketch conditions under which a utility function over system states yields progressive refinement, and discuss limitations imposed by Gödelian results and verifier incompleteness. 
+\emph{(4)} We outline implementation considerations and a staged bootstrap sequence intended to guide empirical exploration. 
+PsiCore is not presented as a complete solution to autonomous reasoning, but as a concrete, formally grounded substrate on top of which such systems could be experimentally developed.
+\end{abstract}
+
+\tableofcontents
+
+\section{Introduction}
+
+Current large-scale AI systems, including modern language and vision models, inherit structural assumptions from human-oriented computing paradigms: sequential processing models, human-readable textual representations, and cognitive abstractions designed primarily for interaction with people. While highly effective within broad but ultimately bounded domains, these systems remain fundamentally \emph{allocentric}---they are optimized to serve human users rather than to support autonomous, long-lived reasoning processes.
+
+In this work we propose \textbf{PsiCore}, a minimal formal substrate designed explicitly for artificial cognition. The central design principle is what we term \textbf{computational eliminativism}: the working hypothesis that robust machine intelligence need not, and perhaps should not, be modeled as a direct analogue of human cognitive architecture. Instead of encoding beliefs, goals, or cognitive modules in human-centric terms, PsiCore specifies a small set of formal primitives and lets structure emerge through self-organization and self-modification under a utility signal.
+
+Concretely, PsiCore combines:
+\begin{itemize}
+  \item a dual-primitive calculus (\textsc{Symbol} and \textsc{Lambda}) realized inside a probabilistic hypergraph state,
+  \item a paraconsistent relevance logic that tolerates local contradictions and isolates them into contexts,
+  \item a self-interpreter represented within the same hypergraph, and
+  \item a recursive four-phase optimization loop that proposes, evaluates, verifies, and integrates graph transformations under an explicit utility function.
+\end{itemize}
+
+Our goals in this paper are modest but concrete. First, we give a precise formal specification of Psi-Calculus, the hypergraph state representation, and the paraconsistent entailment relation. Second, we analyze basic computational properties, including Turing-completeness in consistent regions of the state space and conditions under which a simple utility construction implies non-decreasing refinement over time. Third, we discuss how PsiCore relates to existing lines of work on Gödel machines, neuro-symbolic reasoning, and paraconsistent logics, and we highlight both the potential and the limitations of such a substrate as a path toward more autonomous AI systems.
+
+We emphasize that PsiCore is intended as a \emph{research framework} rather than a finished architecture. Many of the quantities it invokes (e.g., stability, consistency, similarity) admit multiple concrete instantiations, and the theoretical guarantees we sketch depend on idealized assumptions. A primary motivation for formalizing PsiCore is to make these assumptions explicit and to support empirical tests of the design in small-scale implementations.
+
+\section{Formal Foundation: Psi-Calculus}
+
+\subsection{Primitive Definitions}
+
+\begin{definition}[Symbol]
+A \textsc{Symbol} is a quadruple:
+\[
+S = (\mathrm{id}, \sigma, C, \ell)
+\]
+where:
+\begin{itemize}
+\item $\mathrm{id} \in \{0,1\}^{512}$ is a cryptographic identifier (e.g., a SHA3-512 hash),
+\item $\sigma \in [0,1]$ is \textit{stability}, interpreted as a probability-of-persistence or confidence parameter,
+\item $C \in \mathbb{R}^{n}$ is a connectivity vector to $n$ reference symbols (for example, learned or hand-designed features over incident edges),
+\item $\ell \in \mathbb{N}$ denotes the abstraction level in a representational hierarchy.
+\end{itemize}
+\end{definition}
+
+\begin{definition}[Lambda]
+The \textsc{Lambda} primitive is a meta-operator with three modalities:
+\[
+\lambda(x, M) \triangleq 
+\begin{cases}
+\lambda^{a}(x, M) & \text{(Abstraction): $M$ becomes a pattern matching $x$} \\
+\lambda^{p}(x, M) & \text{(Application): instantiate or apply $x$ within $M$} \\
+\lambda^{r}(x, M) & \text{(Reflection): $M$ is treated under a code--data duality}
+\end{cases}
+\]
+\end{definition}
+
+For the purposes of this paper, we treat these modalities abstractly as operators on hypergraph fragments, and we work primarily at the level of their intended roles (pattern formation, application, and self-reference).
+
+\subsection{Axiomatic Basis}
+
+The \emph{Immutable Kernel} of PsiCore encodes four foundational axioms:
+
+\begin{axiom}[Self-Reference]
+\[
+\exists G : G \equiv \lambda^{r} x.\, x(G)
+\]
+There exists a graph $G$ that is its own fixed point under reflection. Intuitively, $G$ contains an internal representation of its own interpreter.
+\end{axiom}
+
+\begin{axiom}[Graph Closure]
+\[
+\forall a\,\forall b\,\exists e\, \bigl(e = \mathrm{edge}(a, b) \land \mathrm{edge}(b, e)\bigr)
+\]
+Every pair of nodes has an edge, and every edge is represented as a node-connected edge. This axiom ensures that edges are first-class entities in the hypergraph.
+\end{axiom}
+
+\begin{axiom}[Similarity Metric]
+\[
+\mathrm{sim}(A, B) = 1 - \frac{|A \Delta B|}{|A \cup B|}
+\]
+where $\Delta$ is symmetric difference. This defines Jaccard similarity on (symbolic) representations $A$ and $B$. In practice, $A$ and $B$ may correspond to sets of incident edges or features of subgraphs.
+\end{axiom}
+
+\begin{axiom}[Utility Function]
+\[
+U(G) = \frac{\mathrm{consistency}(G)}{K(G) + \varepsilon}
+\]
+where $K(G)$ is a proxy for the Kolmogorov complexity of $G$, $\mathrm{consistency}(G)$ measures the degree to which constraints are jointly satisfiable, and $\varepsilon > 0$ prevents division by zero. Precise instantiations of $K$ and $\mathrm{consistency}$ are left open and discussed in Section~\ref{sec:implementation}.
+\end{axiom}
+
+\subsection{Paraconsistent Entailment}
+
+We employ a relevance-style paraconsistent entailment to allow local contradictions without global collapse.
+
+\begin{definition}[Relevance Entailment]
+For propositions $P$, $Q$:
+\[
+P \vdash Q \triangleq (\Box P \land \Diamond Q) \land \neg\exists R\,\bigl[(P \vdash R) \land (R \vdash \neg Q)\bigr]
+\]
+where:
+\begin{itemize}
+\item $\Box P$ means that $P$ is provable in all designated consistent subgraphs (contexts),
+\item $\Diamond Q$ means that $Q$ is supported in at least one consistent subgraph.
+\end{itemize}
+\end{definition}
+
+Intuitively, $P \vdash Q$ holds when $P$ is robust in consistent regions, $Q$ is at least possible somewhere, and there is no intermediate $R$ that would both follow from $P$ and entail $\neg Q$. This formulation allows the system to maintain and reason with incompatible propositions in different contexts while avoiding triviality.
+
+\section{System Architecture}
+
+\subsection{State Representation}
+
+\begin{definition}[Probabilistic Hypergraph]
+The system state is a tuple:
+\[
+H = (V, E, W, A)
+\]
+where:
+\begin{itemize}
+\item $V \subseteq \textsc{Symbol}$ is a set of vertices,
+\item $E \subseteq \mathcal{P}(V) \times \mathrm{Type}$ is a set of typed hyperedges (with $\mathcal{P}$ the power set),
+\item $W: E \to [0,1]$ assigns weights to hyperedges,
+\item $A: V \to [0,1]$ assigns activation levels to vertices.
+\end{itemize}
+\end{definition}
+
+\begin{definition}[Self-Interpreter]
+The operational interpreter $I$ is itself represented as a subgraph:
+\[
+I = \bigl\{
+\mathrm{nodes}: \{\mathrm{read}, \mathrm{eval}, \mathrm{transform}, \mathrm{write}\},
+\]
+\[
+\mathrm{edges}: \{(\mathrm{read}, \mathrm{eval}), (\mathrm{eval}, \mathrm{transform}), (\mathrm{transform}, \mathrm{write})\},
+\]
+\[
+\mathrm{meta}: \lambda^{r} x.\, I(x) \quad \text{(self-application)}
+\bigr\}.
+\]
+\end{definition}
+
+This metacircular representation allows the interpreter to be modified by the same mechanisms that modify the rest of the hypergraph.
+
+\subsection{Recursive Optimization Loop}
+
+The system operates through a conceptually simple four-phase cycle. In practice, each phase may be implemented by heuristics or learned components.
+
+\paragraph{Phase 1: Interpretation}
+\[
+\mathrm{Interpret}(H) = \mathrm{parallel\_map}\bigl(I, \{v \in V \mid A(v) > \theta\}\bigr)
+\]
+Active vertices (above threshold $\theta$) are processed by the interpreter, yielding candidate updates to subgraphs around them.
+
+\paragraph{Phase 2: Evaluation}
+\[
+U(H) = \alpha\cdot\mathrm{accuracy}(H) + \beta\cdot\mathrm{elegance}(H) + \gamma\cdot\mathrm{consistency}(H)
+\]
+with adaptive weights, for example updated via
+\[
+\Delta\alpha \propto \frac{\partial U}{\partial \alpha} \cdot \mathcal{H}(H),
+\]
+where $\mathcal{H}(H)$ is an entropy-like measure over state configurations. The exact decomposition of $U$ is design-dependent; here we simply illustrate one possible form consistent with Axiom~4.
+
+\paragraph{Phase 3: Proposal Generation}
+\[
+\mathrm{Generate}(H) = \mathrm{top\_k}\bigl(\{T(\mathrm{pattern}) \mid \mathrm{pattern} \in \mathrm{frequent\_subgraphs}(H)\}, k\bigr)
+\]
+Transformations $T$ are proposed by mining frequent subgraphs and instantiating a finite family of transformation schemas. In a practical system, this step may be driven by heuristics, learned scoring functions, or external suggestion mechanisms.
+
+\paragraph{Phase 4: Verification}
+\[
+\mathrm{Verify}(T) = \bigwedge_{C \in \mathrm{contexts}(\mathrm{sandbox}(T(H)))} \mathrm{consistent}(C)
+\]
+Each proposed transformation $T$ is applied in a sandboxed copy of $H$. Only if all relevant contexts $C$ remain within acceptable consistency bounds is $T$ admitted into the main state.
+
+\subsection{Contradiction Resolution Protocol}
+
+\begin{definition}[Paraconsistent Isolation]
+Given a proposition $P$ and its negation $\neg P$, the resolution operator is:
+\[
+\mathrm{Resolve}(P, \neg P) =
+\begin{cases}
+\mathrm{demote}(\neg P, 0.5) & \text{if }\mathrm{consistency}(P) > \mathrm{consistency}(\neg P), \\
+\mathrm{demote}(P, 0.5) & \text{if }\mathrm{consistency}(\neg P) > \mathrm{consistency}(P), \\
+\mathrm{create\_context}(\{P, \neg P\}, \mathrm{isolation}=0.9, \mathrm{ttl}=1000) & \text{otherwise.}
+\end{cases}
+\]
+\end{definition}
+
+Here $\mathrm{demote}$ lowers activation or trust in a proposition, and $\mathrm{create\_context}$ spawns an isolated subgraph in which the contradiction can be explored without immediate propagation to the rest of $H$. The specific numeric parameters (e.g., $0.5$ stability, isolation $0.9$, time-to-live $1000$) are placeholders for tunable hyperparameters.
+
+\section{Theoretical Analysis}
+
+\subsection{Computational Properties}
+
+\begin{theorem}[Universality]
+Psi-Calculus is Turing-complete within consistent subspaces.
+\end{theorem}
+
+\begin{proof}[Proof sketch]
+We outline an embedding of the untyped $\lambda$-calculus. Let $\varphi$ map $\lambda$-terms to Psi-Calculus structures:
+\begin{align*}
+\varphi(x) &= (\hash(x), 1.0, \emptyset, 0), \\
+\varphi(\lambda x.M) &= \lambda^{a}(\varphi(x), \varphi(M)), \\
+\varphi(M\,N) &= \lambda^{p}(\varphi(M), \varphi(N)).
+\end{align*}
+Under suitable reduction rules (see Appendix), $\beta$-reduction in the embedded calculus corresponds to sequences of Psi-Calculus transformations that preserve membership in a designated consistent context. This gives a standard universality result for computations confined to such subspaces.
+\end{proof}
+
+\begin{theorem}[Progressive Refinement (idealized)]
+Assume that: (i) the identity transformation is always available and accepted, (ii) verification rejects any transformation that strictly decreases $U$, and (iii) $U(H_t)$ remains bounded above. Then for any time $t$, there exists $t' > t$ such that:
+\[
+U(H_{t'}) \geq U(H_t) + \varepsilon_t , \quad \lim_{t\to\infty} \varepsilon_t = 0.
+\]
+\end{theorem}
+
+\begin{proof}[Proof sketch]
+By assumption, the identity transformation ensures that a non-decreasing move is always available. Verification rejects transformations that would lower $U$, so the sequence $\{U(H_t)\}$ is monotone non-decreasing and bounded above. Standard arguments for such sequences imply convergence, with increments $\varepsilon_t \to 0$. The statement above captures this behavior in an idealized form; realistic systems may violate assumptions (i)--(iii), in which case empirical analysis is required.
+\end{proof}
+
+\subsection{Consistency Guarantees}
+
+\begin{theorem}[Local Consistency (idealized)]
+Under an independence assumption on potential contradictions and a fixed isolation probability $p_i > 0$ per contradiction, the probability of catastrophic inconsistency (global propagation) decays exponentially with the number $n$ of potential contradictions.
+\end{theorem}
+
+\begin{proof}[Proof sketch]
+If each candidate contradiction is isolated with probability at least $p_i$ and propagation events are independent, the probability that none of the $n$ contradictions is successfully isolated is at most $(1-p_i)^n$. This bound decays exponentially in $n$. In practice, dependencies between contradictions and structure in the hypergraph may invalidate the independence assumption; this result should therefore be read as an indication of how isolation mechanisms can, in principle, suppress large-scale collapse, rather than as a guarantee for arbitrary implementations.
+\end{proof}
+
+\subsection{Limitations}
+
+\begin{theorem}[Gödelian Boundary]
+No consistent extension of PsiCore can prove its own global consistency.
+\end{theorem}
+
+This is a direct application of standard incompleteness results to sufficiently expressive formal subsystems embedded in PsiCore.
+
+\begin{theorem}[Sandbox Incompleteness]
+For any verifier $V$ of lower descriptive complexity than the evolving system $S$, there exist transformations that appear safe under $V$ yet lead to contradiction when integrated into $S$.
+\end{theorem}
+
+This theorem is intended as an informal limit statement: no fixed, strictly simpler verifier can capture all failure modes of a more complex evolving system. In practice, it motivates conservative verification strategies and empirical monitoring.
+
+\section{Implementation Framework}
+\label{sec:implementation}
+
+\subsection{Physical Substrate Requirements}
+
+We briefly summarize desirable (but not strictly required) properties of a physical or virtual substrate for PsiCore:
+
+\begin{enumerate}
+\item Content-addressable memory supporting approximate similarity search in $O(\log n)$ time, to realize the similarity metric over large symbol sets.
+\item High degrees of parallelism (on the order of $10^{4}$ or more concurrent operations) to support simultaneous local updates across active parts of the hypergraph.
+\item Non-von Neumann or highly parallel von Neumann architectures to avoid bottlenecks associated with sequential instruction streams.
+\end{enumerate}
+
+\subsection{Staged Bootstrap Sequence}
+
+We anticipate a staged development process, progressing from a minimal kernel to more complex behavior:
+
+\begin{align*}
+\mathrm{Stage\ 0:} &\quad \text{Kernel initialization (axioms, basic graph primitives)}, \\
+\mathrm{Stage\ 1:} &\quad \text{Metacircular interpreter ($\sim 10^{3}$ symbols)}, \\
+\mathrm{Stage\ 2:} &\quad \text{Hypergraph primitives and basic pattern matching ($\sim 10^{4}$ symbols)}, \\
+\mathrm{Stage\ 3:} &\quad \text{Pattern mining and subgraph statistics ($\sim 10^{5}$ symbols)}, \\
+\mathrm{Stage\ 4:} &\quad \text{Meta-optimization over transformation schemas ($\sim 10^{6}$ symbols)}, \\
+\mathrm{Stage\ 5:} &\quad \text{Extended autonomy and open-ended operation ($\sim 10^{7}$ symbols and above)}.
+\end{align*}
+
+These scales are indicative rather than prescriptive and are meant to guide experimental implementations.
+
+\subsection{Resource Governance}
+
+\begin{definition}[Computational Economics]
+For a candidate transformation $T$ we define a simple cost model:
+\[
+\mathrm{Cost}(T) = |V_{\mathrm{modified}}| \cdot (\mathrm{avg\_degree})^{2} \cdot \mathrm{complexity}(T),
+\]
+where $V_{\mathrm{modified}}$ is the set of vertices affected by $T$, $\mathrm{avg\_degree}$ is the average vertex degree in the affected region, and $\mathrm{complexity}(T)$ is an estimate of the time or description length of $T$. Execution requires
+\[
+\mathrm{ResourceToken}(H) > \mathrm{Cost}(T) + \mathrm{threshold}.
+\]
+\end{definition}
+
+This mechanism is meant as a sketch of how resource constraints can be integrated into the transformation-selection process.
+
+\section{Related Work}
+
+PsiCore intersects with several established research areas:
+
+\begin{itemize}
+\item \textbf{Formal systems.} The use of $\lambda$-style primitives and fixed-point self-reference is closely related to work on $\lambda$-calculus, combinatory logic, and metacircular interpreters.
+\item \textbf{Self-modifying systems.} Gödel machines and related self-improving agents similarly consider architectures that rewrite their own code under a formal utility criterion, though often with stronger optimality claims and less emphasis on paraconsistency.
+\item \textbf{Graph-based computation.} Hypergraph-based models and graph rewriting systems provide a structural basis for representing and transforming richly connected states; PsiCore adopts this as its primary state model.
+\item \textbf{Paraconsistent logics.} Relevance and paraconsistent logics have been explored as tools for reasoning in the presence of inconsistency; PsiCore integrates such ideas directly into the inference and context-management layer.
+\end{itemize}
+
+The distinguishing features of PsiCore are its fully symbolic and introspectable state, its explicit protocol for verified self-modification under a utility function, and its use of paraconsistent mechanisms to maintain operation in the presence of contradictions.
+
+\section{Philosophical Implications}
+
+\subsection{Computational Eliminativism}
+
+PsiCore is motivated by a form of computational eliminativism: rather than modeling human beliefs, goals, or phenomenology, it focuses on formal self-organization in a space of symbolic structures. The hypothesis is that autonomous competence can emerge from such a substrate without importing human cognitive categories.
+
+\subsection{The Consciousness Question}
+
+We make no claims about phenomenal consciousness. PsiCore incorporates functional self-reference and self-modification, which are often discussed in philosophical treatments of mind and machine, but the ``hard problem'' of consciousness lies outside the scope of this work.
+
+\section{Conclusion}
+
+We have presented PsiCore, a minimal, formally specified substrate for non-anthropomorphic autonomous AI. The architecture combines a dual-primitive calculus, a probabilistic hypergraph state, paraconsistent relevance logic, and a recursive optimization loop for self-modification. We have outlined its basic computational properties, highlighted limitations, and sketched an implementation pathway.
+
+The primary value of PsiCore, as we see it, lies not in any immediate performance guarantees but in providing a concrete, inspectable target for experimental work on long-lived, self-modifying reasoning systems. Future work includes building small-scale interpreters, testing contradiction isolation on synthetic tasks, and coupling PsiCore-style substrates with neural ``System 1'' components to explore hybrid architectures.
+
+\section*{Acknowledgments}
+
+This work was conducted independently.
+
+\appendix
+
+\section{Complete Kernel Specification}
+
+The Immutable Kernel includes the axioms described in Section~2, basic bootstrapping code for the self-interpreter, and a safety halt mechanism that can suspend transformation application when consistency metrics cross predefined thresholds.
+
+\section{Reduction Rules of Psi-Calculus}
+
+We give an informal list of core reduction rules:
+
+\begin{enumerate}
+\item Symbol equality via identifier equality and a stability threshold.
+\item Conditional $\beta$-reduction for embedded $\lambda$-structures, applied only within designated contexts.
+\item Reflection rules that produce code--data pairs for subgraphs and interpreter fragments.
+\item Context splitting and re-assignment on detection of contradictions, as used by the paraconsistent isolation protocol.
+\end{enumerate}
+
+A more detailed operational semantics is left for future work and will be informed by empirical implementations.
+
+\end{document}
